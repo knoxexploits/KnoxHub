@@ -1,0 +1,1010 @@
+local PlaceID = 3623096087
+
+if game.PlaceId ~= PlaceID then
+    error("Attempt at Unauthorized access: Repeated attempts will have their ID be banned from use")
+    return
+end
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Knox Hub",
+    LoadingTitle = "Knox Hub",
+    LoadingSubtitle = "Loading...",
+    ShowText = "Knox Hub",
+    Theme = "Default",
+    ToggleUIKeybind = "K",
+    DisableRayfieldPrompts = false,
+    DisableBuildWarnings = false,
+    ConfigurationSaving = {
+        Enabled = false,
+    },
+    Discord = {
+        Enabled = true,
+        Invite = "https://discord.gg/KacMWYsyAc",
+        RememberJoins = true
+    },
+    KeySystem = false,
+})
+
+local function enableAntiAFK()
+    while not game:IsLoaded() do wait() end
+    repeat wait() until game.Players.LocalPlayer.Character
+    local VirtualUser = game:GetService('VirtualUser')
+    game.Players.LocalPlayer.Idled:Connect(function()
+        VirtualUser:CaptureController()
+        VirtualUser:ClickButton2(Vector2.new())
+    end)
+end
+
+enableAntiAFK()
+
+local function showNotification(message)
+    Rayfield:Notify({
+        Title = "Knox Hub",
+        Content = message,
+        Duration = 3,
+        Image = "bell",
+    })
+end
+
+local HomeTab = Window:CreateTab("Home", "home")
+local GrindTab = Window:CreateTab("Grind", "dumbbell")
+local RebirthTab = Window:CreateTab("Rebirth", "refresh-cw")
+local KillerTab = Window:CreateTab("Killer", "skull")
+local StatusTab = Window:CreateTab("Status", "bar-chart-2")
+
+------------------------------------------------------------
+-- HOME TAB
+------------------------------------------------------------
+
+HomeTab:CreateSection("Community")
+
+HomeTab:CreateButton({
+    Name = "Copy Discord Server Link",
+    Callback = function()
+        setclipboard("https://discord.gg/KacMWYsyAc")
+        Rayfield:Notify({
+            Title = "Link Copied!",
+            Content = "Paste into browser to join the Discord.",
+            Duration = 4,
+            Image = "link",
+        })
+    end,
+})
+
+HomeTab:CreateSection("Anti-AFK")
+
+HomeTab:CreateToggle({
+    Name = "Anti-AFK",
+    CurrentValue = true,
+    Flag = "AntiAFK",
+    Callback = function(Value)
+    end,
+})
+
+HomeTab:CreateSection("Teleport")
+
+local teleportLocations = {
+    {name = "Jungle Gym", position = Vector3.new(-7605.124, 135.587, 2914.835), orientation = Vector3.new(0, 52.2, 0)},
+    {name = "Muscle King Gym", position = Vector3.new(-9027.985, 72.803, -6121.537), orientation = Vector3.new(0, -132.62, 0)},
+    {name = "Legends Gym", position = Vector3.new(4141.793, 1051.96875, -4088.69677734375), orientation = Vector3.new(0, -109.13, 0)}
+}
+
+for _, location in ipairs(teleportLocations) do
+    HomeTab:CreateButton({
+        Name = "Teleport to " .. location.name,
+        Callback = function()
+            local player = game.Players.LocalPlayer
+            local character = player.Character or player.CharacterAdded:Wait()
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                humanoidRootPart.CFrame = CFrame.new(location.position) * CFrame.Angles(
+                    math.rad(location.orientation.X),
+                    math.rad(location.orientation.Y),
+                    math.rad(location.orientation.Z)
+                )
+            end
+        end,
+    })
+end
+
+HomeTab:CreateSection("Size & Speed")
+
+HomeTab:CreateButton({
+    Name = "Set Default Size & Speed",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local sizeArgs = { [1] = "changeSize", [2] = 4 }
+            game:GetService("ReplicatedStorage").rEvents.changeSpeedSizeRemote:InvokeServer(unpack(sizeArgs))
+            local humanoid = character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.WalkSpeed = 150
+            end
+        end
+    end,
+})
+
+HomeTab:CreateSection("Gamepass")
+
+HomeTab:CreateButton({
+    Name = "Unlock x2 Workout Speed Gamepass",
+    Callback = function()
+        local ownedGamepasses = game.Players.LocalPlayer.ownedGamepasses
+        local gamepass = Instance.new("BoolValue")
+        gamepass.Parent = ownedGamepasses
+        gamepass.Name = "x2 Rep Time"
+        gamepass.Value = true
+    end,
+})
+
+HomeTab:CreateSection("Performance")
+
+HomeTab:CreateButton({
+    Name = "Remove Annoying Frames (Reduce Lag)",
+    Callback = function()
+        local replicatedStorage = game:GetService("ReplicatedStorage")
+        local starterGui = game:GetService("StarterGui")
+        local framesToRemove = {
+            "agilityFrame", "gemsFrame", "evilKarmaFrame",
+            "durabilityFrame", "goodKarmaFrame", "strengthFrame",
+            "tokensFrame", "petShopItemFrame"
+        }
+        for _, frameName in ipairs(framesToRemove) do
+            local frame = replicatedStorage:FindFirstChild(frameName)
+            if frame then frame:Destroy() end
+        end
+        local currencyFrameGui = starterGui:FindFirstChild("currencyFrameGui")
+        if currencyFrameGui then
+            currencyFrameGui.Enabled = false
+        end
+    end,
+})
+
+------------------------------------------------------------
+-- GRIND TAB
+------------------------------------------------------------
+
+GrindTab:CreateSection("Rock Training")
+
+local rocks = {
+    {name = "Ancient Jungle Rock", location = "Ancient Jungle Rock"},
+    {name = "Muscle King Rock", location = "Muscle King Mountain"},
+    {name = "Rock of Legends", location = "Rock Of Legends"}
+}
+
+local rockStates = {}
+
+for _, rockData in ipairs(rocks) do
+    rockStates[rockData.name] = false
+    GrindTab:CreateToggle({
+        Name = "Punch " .. rockData.name,
+        CurrentValue = false,
+        Flag = "Rock_" .. rockData.name:gsub(" ", ""),
+        Callback = function(Value)
+            rockStates[rockData.name] = Value
+            if Value then
+                local originalCFrame, originalSize, originalTransparency, originalCanCollide
+                spawn(function()
+                    local player = game.Players.LocalPlayer
+                    local character = player.Character or player.CharacterAdded:Wait()
+                    local leftHand = character:WaitForChild("LeftHand")
+                    local rock = game.Workspace.machinesFolder:FindFirstChild(rockData.location):FindFirstChild("Rock")
+                    if rock then
+                        originalCFrame = rock.CFrame
+                        originalSize = rock.Size
+                        originalTransparency = rock.Transparency
+                        originalCanCollide = rock.CanCollide
+                        rock.Size = Vector3.new(2, 1, 1)
+                        rock.Transparency = 1
+                        for _, v in pairs(rock.rockGui:GetChildren()) do v.Visible = false end
+                        rock.CanCollide = false
+                        if rock:FindFirstChild("rockEmitter") then rock.rockEmitter:Destroy() end
+                        if rock:FindFirstChild("hoopParticle") then rock.hoopParticle:Destroy() end
+                        if rock:FindFirstChild("lavaParticle") then rock.lavaParticle:Destroy() end
+                        while rockStates[rockData.name] do
+                            rock.CFrame = leftHand.CFrame
+                            wait()
+                        end
+                    end
+                    if rock then
+                        rock.CFrame = originalCFrame
+                        rock.Size = originalSize
+                        rock.Transparency = originalTransparency
+                        rock.CanCollide = originalCanCollide
+                        for _, v in pairs(rock.rockGui:GetChildren()) do v.Visible = true end
+                    end
+                end)
+            end
+        end,
+    })
+end
+
+GrindTab:CreateSection("Safe Space")
+
+GrindTab:CreateToggle({
+    Name = "Teleport to Safe Space",
+    CurrentValue = false,
+    Flag = "TpSafeSpace",
+    Callback = function(Value)
+        if Value then
+            local player = game.Players.LocalPlayer
+            local safeCFrame = CFrame.new(-33.957, 45.657, 1811.310)
+            player.Character.HumanoidRootPart.CFrame = safeCFrame
+        end
+    end,
+})
+
+GrindTab:CreateSection("Position")
+
+GrindTab:CreateToggle({
+    Name = "Lock Position",
+    CurrentValue = false,
+    Flag = "LockPosition",
+    Callback = function(Value)
+        if Value then
+            local currentPos = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+            getgenv().posLock = game:GetService("RunService").Heartbeat:Connect(function()
+                if game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = currentPos
+                end
+            end)
+        else
+            if getgenv().posLock then
+                getgenv().posLock:Disconnect()
+                getgenv().posLock = nil
+            end
+        end
+    end,
+})
+
+GrindTab:CreateSection("Weight Training")
+
+local autoFastWeightEnabled = false
+
+GrindTab:CreateToggle({
+    Name = "Auto Fast Weight",
+    CurrentValue = false,
+    Flag = "AutoFastWeight",
+    Callback = function(Value)
+        autoFastWeightEnabled = Value
+        if Value then
+            task.spawn(function()
+                local player = game.Players.LocalPlayer
+                local character = player.Character or player.CharacterAdded:Wait()
+                local humanoid = character:FindFirstChildOfClass("Humanoid")
+                while autoFastWeightEnabled do
+                    local weightTool = player.Backpack:FindFirstChild("Weight") or character:FindFirstChild("Weight")
+                    if weightTool then
+                        if weightTool.Parent == player.Backpack then
+                            humanoid:EquipTool(weightTool)
+                        end
+                        if weightTool:IsDescendantOf(character) then
+                            weightTool.repTime.Value = 0
+                            weightTool:Activate()
+                        end
+                    end
+                    task.wait()
+                end
+            end)
+        else
+            local player = game.Players.LocalPlayer
+            local weightTool = player.Character and player.Character:FindFirstChild("Weight")
+            if weightTool then
+                weightTool.repTime.Value = 1
+                player.Character:FindFirstChildOfClass("Humanoid"):UnequipTools()
+            end
+        end
+    end,
+})
+
+GrindTab:CreateSection("Push-Ups")
+
+local autoPushUpsEnabled = false
+
+GrindTab:CreateToggle({
+    Name = "Auto Fast Push-Ups",
+    CurrentValue = false,
+    Flag = "AutoFastPushUps",
+    Callback = function(Value)
+        autoPushUpsEnabled = Value
+        if Value then
+            spawn(function()
+                local player = game.Players.LocalPlayer
+                local character = player.Character or player.CharacterAdded:Wait()
+                local muscleEvent = game:GetService("Players").LocalPlayer:FindFirstChild("muscleEvent")
+                local pushupsTool = player.Backpack:FindFirstChild("Pushups") or character:FindFirstChild("Pushups")
+                if pushupsTool then
+                    if pushupsTool.Parent == player.Backpack then
+                        character:WaitForChild("Humanoid"):EquipTool(pushupsTool)
+                    end
+                    while autoPushUpsEnabled do
+                        if muscleEvent then muscleEvent:FireServer("rep") end
+                        task.wait(0.05)
+                    end
+                end
+            end)
+        else
+            local player = game.Players.LocalPlayer
+            local pushupsTool = player.Character and player.Character:FindFirstChild("Pushups")
+            if pushupsTool then player.Character:WaitForChild("Humanoid"):UnequipTools() end
+        end
+    end,
+})
+
+GrindTab:CreateSection("Punch")
+
+local autoPunchEnabled = false
+
+GrindTab:CreateToggle({
+    Name = "Auto Punch",
+    CurrentValue = false,
+    Flag = "AutoPunch",
+    Callback = function(Value)
+        autoPunchEnabled = Value
+        if Value then
+            local player = game.Players.LocalPlayer
+            local character = player.Character or player.CharacterAdded:Wait()
+            local punchTool = player.Backpack:FindFirstChild("Punch") or character:FindFirstChild("Punch")
+            if punchTool then
+                if punchTool.Parent == player.Backpack then
+                    character:WaitForChild("Humanoid"):EquipTool(punchTool)
+                end
+                game:GetService("RunService").RenderStepped:Connect(function()
+                    if autoPunchEnabled and punchTool:IsDescendantOf(character) then
+                        punchTool:Activate()
+                    end
+                end)
+            end
+        else
+            local player = game.Players.LocalPlayer
+            local punchTool = player.Character and player.Character:FindFirstChild("Punch")
+            if punchTool then player.Character:WaitForChild("Humanoid"):UnequipTools() end
+        end
+    end,
+})
+
+local autoFastPunchEnabled = false
+local lastAttackTime = 0
+
+GrindTab:CreateToggle({
+    Name = "Auto Fast Punch",
+    CurrentValue = false,
+    Flag = "AutoFastPunch",
+    Callback = function(Value)
+        autoFastPunchEnabled = Value
+        local function ensurePunchEquipped()
+            local player = game.Players.LocalPlayer
+            local character = player.Character or player.CharacterAdded:Wait()
+            local humanoid = character:FindFirstChild("Humanoid")
+            local punchTool = character:FindFirstChild("Punch") or player.Backpack:FindFirstChild("Punch")
+            if punchTool and humanoid and punchTool.Parent == player.Backpack then
+                humanoid:EquipTool(punchTool)
+            end
+            return punchTool
+        end
+        if Value then
+            local punchTool = ensurePunchEquipped()
+            if punchTool then
+                punchTool.attackTime.Value = 0
+                game:GetService("RunService").RenderStepped:Connect(function()
+                    if autoFastPunchEnabled then
+                        local pt = ensurePunchEquipped()
+                        if pt and tick() - lastAttackTime >= pt.attackTime.Value then
+                            pt:Activate()
+                            lastAttackTime = tick()
+                        end
+                    end
+                end)
+            end
+        else
+            local player = game.Players.LocalPlayer
+            local character = player.Character
+            local punchTool = character and character:FindFirstChild("Punch")
+            if punchTool then
+                player.Character:WaitForChild("Humanoid"):UnequipTools()
+                punchTool.attackTime.Value = 0.1
+            end
+        end
+    end,
+})
+
+------------------------------------------------------------
+-- REBIRTH TAB
+------------------------------------------------------------
+
+RebirthTab:CreateSection("Auto Rebirth Settings")
+
+local targetRebirth = -1
+local stoppingPointEnabled = false
+local autoRebirthEnabled = false
+local confirmationGiven = false
+
+RebirthTab:CreateInput({
+    Name = "Rebirth Stopping Point",
+    CurrentValue = "",
+    PlaceholderText = "Enter rebirth number (1 - 9000000)",
+    RemoveTextAfterFocusLost = false,
+    Flag = "RebirthStopInput",
+    Callback = function(Text)
+        local inputValue = tonumber(Text)
+        if inputValue and inputValue >= 1 and inputValue <= 9000000 then
+            targetRebirth = inputValue
+        else
+            targetRebirth = -1
+        end
+    end,
+})
+
+RebirthTab:CreateToggle({
+    Name = "Enable Stopping Point",
+    CurrentValue = false,
+    Flag = "RebirthStopToggle",
+    Callback = function(Value)
+        stoppingPointEnabled = Value
+    end,
+})
+
+local function createRebirthConfirmation(onConfirm)
+    local screenGui = Instance.new("ScreenGui", game.Players.LocalPlayer:WaitForChild("PlayerGui"))
+    screenGui.Name = "RebirthConfirmationGui"
+    local frame = Instance.new("Frame", screenGui)
+    frame.Size = UDim2.new(0.3, 0, 0.2, 0)
+    frame.Position = UDim2.new(0.35, 0, 0.4, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    local c = Instance.new("UICorner", frame)
+    c.CornerRadius = UDim.new(0, 10)
+    local label = Instance.new("TextLabel", frame)
+    label.Size = UDim2.new(1, 0, 0.5, 0)
+    label.Text = "You have high stats, Are you sure you want to rebirth?"
+    label.TextScaled = true
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.BackgroundTransparency = 1
+    local yesButton = Instance.new("TextButton", frame)
+    yesButton.Size = UDim2.new(0.4, 0, 0.3, 0)
+    yesButton.Position = UDim2.new(0.1, 0, 0.6, 0)
+    yesButton.Text = "Yes"
+    yesButton.BackgroundColor3 = Color3.fromRGB(0, 200, 80)
+    yesButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    yesButton.BorderSizePixel = 0
+    local c2 = Instance.new("UICorner", yesButton)
+    c2.CornerRadius = UDim.new(0, 6)
+    local noButton = Instance.new("TextButton", frame)
+    noButton.Size = UDim2.new(0.4, 0, 0.3, 0)
+    noButton.Position = UDim2.new(0.5, 0, 0.6, 0)
+    noButton.Text = "No"
+    noButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    noButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    noButton.BorderSizePixel = 0
+    local c3 = Instance.new("UICorner", noButton)
+    c3.CornerRadius = UDim.new(0, 6)
+    yesButton.MouseButton1Click:Connect(function()
+        confirmationGiven = true
+        screenGui:Destroy()
+        onConfirm()
+    end)
+    noButton.MouseButton1Click:Connect(function()
+        confirmationGiven = false
+        screenGui:Destroy()
+    end)
+end
+
+RebirthTab:CreateToggle({
+    Name = "Start Auto Rebirth",
+    CurrentValue = false,
+    Flag = "AutoRebirth",
+    Callback = function(Value)
+        autoRebirthEnabled = Value
+        confirmationGiven = false
+        if Value then
+            spawn(function()
+                while autoRebirthEnabled do
+                    local localPlayer = game.Players.LocalPlayer
+                    local stats = localPlayer:FindFirstChild("leaderstats")
+                    if not stats then break end
+                    local currentRebirths = stats.Rebirths.Value
+                    local strength = stats.Strength.Value
+                    local durability = localPlayer.Durability.Value
+                    local agility = localPlayer.Agility.Value
+                    if stoppingPointEnabled and targetRebirth ~= -1 and currentRebirths >= targetRebirth then
+                        autoRebirthEnabled = false
+                        break
+                    end
+                    if (strength > 5000000 or durability > 5000000000 or agility > 5000000000) and not confirmationGiven then
+                        local confirmed = false
+                        createRebirthConfirmation(function() confirmed = true end)
+                        while not confirmed do wait(0.1) end
+                        confirmationGiven = true
+                    end
+                    if confirmationGiven or (strength <= 5000000000 and durability <= 5000000000 and agility <= 5000000000) then
+                        local rebirthEvent = game:GetService("ReplicatedStorage").rEvents.rebirthRemote
+                        if rebirthEvent then rebirthEvent:InvokeServer("rebirthRequest") end
+                    end
+                    wait(0.1)
+                end
+            end)
+        end
+    end,
+})
+
+RebirthTab:CreateSection("Auto Teleport")
+
+local autoTeleportEnabled = false
+
+RebirthTab:CreateToggle({
+    Name = "Auto Teleport Kings Gym",
+    CurrentValue = false,
+    Flag = "AutoTeleportKingsGym",
+    Callback = function(Value)
+        autoTeleportEnabled = Value
+        if Value then
+            spawn(function()
+                while autoTeleportEnabled do
+                    local player = game.Players.LocalPlayer
+                    local kingsGymPosition = Vector3.new(-8747.916, 124.256, -5864.306)
+                    if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        player.Character.HumanoidRootPart.CFrame = CFrame.new(kingsGymPosition)
+                    end
+                    wait(0.2)
+                end
+            end)
+        end
+    end,
+})
+
+RebirthTab:CreateSection("Auto Size")
+
+local autoShrinkEnabled = false
+
+RebirthTab:CreateToggle({
+    Name = "Auto Shrink Size",
+    CurrentValue = false,
+    Flag = "AutoShrinkSize",
+    Callback = function(Value)
+        autoShrinkEnabled = Value
+        if Value then
+            spawn(function()
+                while autoShrinkEnabled do
+                    local player = game.Players.LocalPlayer
+                    local character = player.Character or player.CharacterAdded:Wait()
+                    if character and game:GetService("ReplicatedStorage"):FindFirstChild("rEvents") then
+                        local changeSizeRemote = game:GetService("ReplicatedStorage").rEvents.changeSpeedSizeRemote
+                        local sizeArgs = { [1] = "changeSize", [2] = 2 }
+                        changeSizeRemote:InvokeServer(unpack(sizeArgs))
+                    end
+                    wait(1)
+                end
+            end)
+        end
+    end,
+})
+
+RebirthTab:CreateSection("Weight Training")
+
+local autoFastWeightRebirth = false
+
+RebirthTab:CreateToggle({
+    Name = "Auto Fast Weight",
+    CurrentValue = false,
+    Flag = "AutoFastWeightRebirth",
+    Callback = function(Value)
+        autoFastWeightRebirth = Value
+        if Value then
+            task.spawn(function()
+                local player = game.Players.LocalPlayer
+                local character = player.Character or player.CharacterAdded:Wait()
+                local humanoid = character:FindFirstChildOfClass("Humanoid")
+                while autoFastWeightRebirth do
+                    local weightTool = player.Backpack:FindFirstChild("Weight") or character:FindFirstChild("Weight")
+                    if weightTool then
+                        if weightTool.Parent == player.Backpack then
+                            humanoid:EquipTool(weightTool)
+                        end
+                        if weightTool:IsDescendantOf(character) then
+                            weightTool.repTime.Value = 0
+                            weightTool:Activate()
+                        end
+                    end
+                    task.wait()
+                end
+            end)
+        else
+            local player = game.Players.LocalPlayer
+            local weightTool = player.Character and player.Character:FindFirstChild("Weight")
+            if weightTool then
+                weightTool.repTime.Value = 1
+                player.Character:FindFirstChildOfClass("Humanoid"):UnequipTools()
+            end
+        end
+    end,
+})
+
+------------------------------------------------------------
+-- KILLER TAB
+------------------------------------------------------------
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local isRunning = false
+local autoKillBlacklistEnabled = false
+local ownerUserId = LocalPlayer.UserId
+local whitelist = {}
+local blacklist = {}
+
+KillerTab:CreateSection("Player Lists")
+
+local whitelistInput
+
+KillerTab:CreateInput({
+    Name = "Player Username",
+    CurrentValue = "",
+    PlaceholderText = "Enter username...",
+    RemoveTextAfterFocusLost = false,
+    Flag = "KillerPlayerInput",
+    Callback = function(Text)
+        whitelistInput = Text
+    end,
+})
+
+KillerTab:CreateButton({
+    Name = "Add to Whitelist",
+    Callback = function()
+        local inputName = whitelistInput
+        if not inputName or inputName == "" then return end
+        local player = game.Players:FindFirstChild(inputName)
+        if player then
+            whitelist[player.Name] = true
+            showNotification("Whitelisted: " .. player.DisplayName .. " (" .. player.Name .. ")")
+        else
+            local found = false
+            for _, p in ipairs(game.Players:GetPlayers()) do
+                if p.DisplayName:lower() == inputName:lower() then
+                    whitelist[p.Name] = true
+                    showNotification("Whitelisted: " .. p.DisplayName .. " (" .. p.Name .. ")")
+                    found = true
+                    break
+                end
+            end
+            if not found then showNotification("Error: No player found") end
+        end
+    end,
+})
+
+KillerTab:CreateButton({
+    Name = "Remove from Whitelist",
+    Callback = function()
+        local inputName = whitelistInput
+        if not inputName or inputName == "" then return end
+        if whitelist[inputName] then
+            whitelist[inputName] = nil
+            showNotification("Removed from whitelist: " .. inputName)
+        else
+            showNotification("Error: Not in whitelist")
+        end
+    end,
+})
+
+KillerTab:CreateButton({
+    Name = "Add to Blacklist",
+    Callback = function()
+        local inputName = whitelistInput
+        if not inputName or inputName == "" then return end
+        local player = game.Players:FindFirstChild(inputName)
+        if player then
+            blacklist[player.Name] = true
+            showNotification("Blacklisted: " .. player.Name)
+        else
+            local found = false
+            for _, p in ipairs(game.Players:GetPlayers()) do
+                if p.DisplayName:lower() == inputName:lower() then
+                    blacklist[p.Name] = true
+                    showNotification("Blacklisted: " .. p.DisplayName .. " (" .. p.Name .. ")")
+                    found = true
+                    break
+                end
+            end
+            if not found then showNotification("Error: No player found") end
+        end
+    end,
+})
+
+KillerTab:CreateButton({
+    Name = "Remove from Blacklist",
+    Callback = function()
+        local inputName = whitelistInput
+        if not inputName or inputName == "" then return end
+        if blacklist[inputName] then
+            blacklist[inputName] = nil
+            showNotification("Removed from blacklist: " .. inputName)
+        else
+            showNotification("Error: Not in blacklist")
+        end
+    end,
+})
+
+KillerTab:CreateSection("Auto Whitelist")
+
+KillerTab:CreateToggle({
+    Name = "Auto Whitelist Friends",
+    CurrentValue = false,
+    Flag = "AutoWhitelistFriends",
+    Callback = function(Value)
+        getgenv().autoWhitelist = Value
+        if Value then
+            for _, player in pairs(Players:GetPlayers()) do
+                if player:IsFriendsWith(ownerUserId) then whitelist[player.Name] = true end
+            end
+            Players.PlayerAdded:Connect(function(player)
+                if getgenv().autoWhitelist and player:IsFriendsWith(ownerUserId) then
+                    whitelist[player.Name] = true
+                end
+            end)
+            Players.PlayerRemoving:Connect(function(player)
+                if getgenv().autoWhitelist and player:IsFriendsWith(ownerUserId) then
+                    whitelist[player.Name] = nil
+                end
+            end)
+        else
+            for _, player in pairs(Players:GetPlayers()) do
+                if player:IsFriendsWith(ownerUserId) then
+                    whitelist[player.Name] = nil
+                end
+            end
+        end
+    end,
+})
+
+KillerTab:CreateSection("Auto Kill")
+
+local function autoKillLoop()
+    local timeoutDuration = 2
+    while isRunning do
+        for _, player in ipairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+                if not whitelist[player.Name] then
+                    local character = player.Character
+                    local humanoid = character:FindFirstChild("Humanoid")
+                    if humanoid and humanoid.Health > 0 then
+                        local head = character.Head
+                        local leftHand = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("LeftHand")
+                        local rightHand = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("RightHand")
+                        if leftHand and rightHand then
+                            local success = false
+                            local startTime = os.clock()
+                            repeat
+                                firetouchinterest(head, leftHand, 0)
+                                firetouchinterest(head, leftHand, 1)
+                                firetouchinterest(head, rightHand, 0)
+                                firetouchinterest(head, rightHand, 1)
+                                success = humanoid.Health <= 0
+                                task.wait(0.1)
+                            until success or (os.clock() - startTime) > timeoutDuration
+                        end
+                    end
+                end
+            end
+        end
+        task.wait(0.1)
+    end
+end
+
+KillerTab:CreateToggle({
+    Name = "Auto Kill",
+    CurrentValue = false,
+    Flag = "AutoKill",
+    Callback = function(Value)
+        if Value then
+            if not isRunning then
+                isRunning = true
+                task.spawn(autoKillLoop)
+            end
+        else
+            isRunning = false
+        end
+    end,
+})
+
+local function autoKillBlacklistLoop()
+    local timeoutDuration = 2
+    while autoKillBlacklistEnabled do
+        for _, player in ipairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+                local character = player.Character
+                local humanoid = character:FindFirstChild("Humanoid")
+                local head = character.Head
+                local leftHand = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("LeftHand")
+                local rightHand = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("RightHand")
+                if blacklist[player.Name] and not whitelist[player.Name] then
+                    if humanoid and humanoid.Health > 0 then
+                        if leftHand and rightHand then
+                            local success = false
+                            local startTime = os.clock()
+                            repeat
+                                firetouchinterest(head, leftHand, 0)
+                                firetouchinterest(head, leftHand, 1)
+                                firetouchinterest(head, rightHand, 0)
+                                firetouchinterest(head, rightHand, 1)
+                                success = humanoid.Health <= 0
+                                task.wait(0.1)
+                            until success or (os.clock() - startTime) > timeoutDuration
+                        end
+                    end
+                end
+            end
+        end
+        task.wait(0.1)
+    end
+end
+
+KillerTab:CreateToggle({
+    Name = "Auto Kill Blacklist",
+    CurrentValue = false,
+    Flag = "AutoKillBlacklist",
+    Callback = function(Value)
+        autoKillBlacklistEnabled = Value
+        if Value then
+            task.spawn(autoKillBlacklistLoop)
+        end
+    end,
+})
+
+KillerTab:CreateSection("Fast Punch")
+
+local autoFastPunchKiller = false
+local lastAttackTimeKiller = 0
+
+KillerTab:CreateToggle({
+    Name = "Auto Fast Punch",
+    CurrentValue = false,
+    Flag = "AutoFastPunchKiller",
+    Callback = function(Value)
+        autoFastPunchKiller = Value
+        local function ensurePunchEquipped()
+            local player = game.Players.LocalPlayer
+            local character = player.Character or player.CharacterAdded:Wait()
+            local humanoid = character:FindFirstChild("Humanoid")
+            local punchTool = character:FindFirstChild("Punch") or player.Backpack:FindFirstChild("Punch")
+            if punchTool and humanoid and punchTool.Parent == player.Backpack then
+                humanoid:EquipTool(punchTool)
+            end
+            return punchTool
+        end
+        if Value then
+            local punchTool = ensurePunchEquipped()
+            if punchTool then
+                punchTool.attackTime.Value = 0
+                game:GetService("RunService").RenderStepped:Connect(function()
+                    if autoFastPunchKiller then
+                        local pt = ensurePunchEquipped()
+                        if pt and tick() - lastAttackTimeKiller >= pt.attackTime.Value then
+                            pt:Activate()
+                            lastAttackTimeKiller = tick()
+                        end
+                    end
+                end)
+            end
+        else
+            local player = game.Players.LocalPlayer
+            local character = player.Character
+            local punchTool = character and character:FindFirstChild("Punch")
+            if punchTool then
+                player.Character:WaitForChild("Humanoid"):UnequipTools()
+                punchTool.attackTime.Value = 0.1
+            end
+        end
+    end,
+})
+
+------------------------------------------------------------
+-- STATUS TAB
+------------------------------------------------------------
+
+StatusTab:CreateSection("Player Statistics")
+
+local updatingStats = true
+
+local strengthGained = 0
+local lastStrengthValue = nil
+local rebirthsGained = 0
+local lastRebirthsValue = nil
+local killsGained = 0
+local lastKillsValue = nil
+local brawlsGained = 0
+local lastBrawlsValue = nil
+local goodKarmaGained = 0
+local lastGoodKarmaValue = nil
+local evilKarmaGained = 0
+local lastEvilKarmaValue = nil
+local KarmaGained = 0
+local lastKarmaValue = nil
+local durabilityGained = 0
+local lastDurabilityValue = nil
+local agilityGained = 0
+local lastAgilityValue = nil
+
+local function formatNumber(number)
+    if number >= 1000000 then
+        return string.format("%.1fM", number/1000000)
+    elseif number >= 1000 then
+        return string.format("%.1fK", number/1000)
+    else
+        return tostring(number)
+    end
+end
+
+local StatLabel = StatusTab:CreateLabel("Loading stats...")
+
+repeat task.wait() until game:IsLoaded()
+if not game.Players.LocalPlayer.Character then
+    game.Players.LocalPlayer.CharacterAdded:Wait()
+end
+repeat task.wait() until game.Players.LocalPlayer:FindFirstChild("leaderstats") and game.Players.LocalPlayer:FindFirstChild("goodKarma")
+
+local function updateStats()
+    if not updatingStats then return end
+    local player = game.Players.LocalPlayer
+    local currentStrength = player.leaderstats.Strength.Value
+    local currentRebirths = player.leaderstats.Rebirths.Value
+    local currentKills = player.leaderstats.Kills.Value
+    local currentBrawls = player.leaderstats.Brawls.Value
+    local currentGoodKarma = player.goodKarma.Value
+    local currentEvilKarma = player.evilKarma.Value
+    local currentKarma = currentGoodKarma + currentEvilKarma
+    local currentDurability = player.Durability.Value
+    local currentAgility = player.Agility.Value
+    if lastStrengthValue == nil then lastStrengthValue = currentStrength
+    elseif currentStrength > lastStrengthValue then strengthGained = strengthGained + (currentStrength - lastStrengthValue) end
+    lastStrengthValue = currentStrength
+    if lastRebirthsValue == nil then lastRebirthsValue = currentRebirths
+    elseif currentRebirths > lastRebirthsValue then rebirthsGained = rebirthsGained + (currentRebirths - lastRebirthsValue) end
+    lastRebirthsValue = currentRebirths
+    if lastKillsValue == nil then lastKillsValue = currentKills
+    elseif currentKills > lastKillsValue then killsGained = killsGained + (currentKills - lastKillsValue) end
+    lastKillsValue = currentKills
+    if lastBrawlsValue == nil then lastBrawlsValue = currentBrawls
+    elseif currentBrawls > lastBrawlsValue then brawlsGained = brawlsGained + (currentBrawls - lastBrawlsValue) end
+    lastBrawlsValue = currentBrawls
+    if lastGoodKarmaValue == nil then lastGoodKarmaValue = currentGoodKarma
+    elseif currentGoodKarma > lastGoodKarmaValue then goodKarmaGained = goodKarmaGained + (currentGoodKarma - lastGoodKarmaValue) end
+    lastGoodKarmaValue = currentGoodKarma
+    if lastEvilKarmaValue == nil then lastEvilKarmaValue = currentEvilKarma
+    elseif currentEvilKarma > lastEvilKarmaValue then evilKarmaGained = evilKarmaGained + (currentEvilKarma - lastEvilKarmaValue) end
+    lastEvilKarmaValue = currentEvilKarma
+    if lastKarmaValue == nil then lastKarmaValue = currentKarma
+    elseif currentKarma > lastKarmaValue then KarmaGained = KarmaGained + (currentKarma - lastKarmaValue) end
+    lastKarmaValue = currentKarma
+    if lastDurabilityValue == nil then lastDurabilityValue = currentDurability
+    elseif currentDurability > lastDurabilityValue then durabilityGained = durabilityGained + (currentDurability - lastDurabilityValue) end
+    lastDurabilityValue = currentDurability
+    if lastAgilityValue == nil then lastAgilityValue = currentAgility
+    elseif currentAgility > lastAgilityValue then agilityGained = agilityGained + (currentAgility - lastAgilityValue) end
+    lastAgilityValue = currentAgility
+    StatLabel:Set(string.format(
+        "STR: %s (+%s)  |  DUR: %s (+%s)\nREB: %s (+%s)  |  KILLS: %s (+%s)\nBRAWLS: %s (+%s)  |  AGI: %s (+%s)",
+        formatNumber(currentStrength), formatNumber(strengthGained),
+        formatNumber(currentDurability), formatNumber(durabilityGained),
+        formatNumber(currentRebirths), formatNumber(rebirthsGained),
+        formatNumber(currentKills), formatNumber(killsGained),
+        formatNumber(currentBrawls), formatNumber(brawlsGained),
+        formatNumber(currentAgility), formatNumber(agilityGained)
+    ))
+end
+
+game:GetService("RunService").RenderStepped:Connect(updateStats)
+
+StatusTab:CreateToggle({
+    Name = "Stats Tracking (Disable to Reduce Lag)",
+    CurrentValue = true,
+    Flag = "StatsTracking",
+    Callback = function(Value)
+        updatingStats = Value
+        if not Value then
+            StatLabel:Set("Stats disabled to reduce lag.")
+        else
+            StatLabel:Set("Loading stats...")
+        end
+    end,
+})
+)
