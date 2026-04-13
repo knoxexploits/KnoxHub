@@ -1,0 +1,35 @@
+local TargetID = 84636138608275
+
+if game.PlaceId == TargetID then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/knoxexploits/KnoxHub/main/TrainforBrainrot.txt"))()
+else
+    local ScreenGui = Instance.new("ScreenGui")
+    local Frame = Instance.new("Frame")
+    local TextLabel = Instance.new("TextLabel")
+    local Accent = Instance.new("Frame")
+
+    ScreenGui.Parent = game:GetService("CoreGui")
+    
+    Frame.Parent = ScreenGui
+    Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Frame.BorderSizePixel = 0
+    Frame.Position = UDim2.new(0.5, -150, 0.4, 0)
+    Frame.Size = UDim2.new(0, 300, 0, 80)
+    
+    Accent.Parent = Frame
+    Accent.Size = UDim2.new(1, 0, 0, 3)
+    Accent.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+    Accent.BorderSizePixel = 0
+
+    TextLabel.Parent = Frame
+    TextLabel.Size = UDim2.new(1, 0, 1, 0)
+    TextLabel.BackgroundTransparency = 1
+    TextLabel.Text = "This game is not supported. pls request is on discord"
+    TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel.TextWrapped = true
+    TextLabel.Font = Enum.Font.SourceSansSemibold
+    TextLabel.TextSize = 18
+
+    task.wait(3)
+    ScreenGui:Destroy()
+end
