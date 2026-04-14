@@ -1,6 +1,6 @@
 local TargetID1 = 84636138608275
 local TargetID2 = 3623096087
-local TargetID3 = 9671940985
+local TargetID3 = 94702395375549
 
 if game.PlaceId == TargetID1 then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/knoxexploits/KnoxHub/main/TrainforBrainrot.txt"))()
