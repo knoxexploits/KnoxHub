@@ -5,6 +5,7 @@ local TargetID4 = 10449761463
 local TargetID5 = 1962086868
 local TargetID6 = 5253186791
 local TargetID7 = 109983668079237
+local TargetID8 = 89469502395769
 
 if game.PlaceId == TargetID1 then 
     loadstring(game:HttpGet("https://raw.githubusercontent.com/knoxexploits/KnoxHub/main/TrainforBrainrot.txt"))()
@@ -24,6 +25,36 @@ elseif game.PlaceId == TargetID5 or game.PlaceId == TargetID6 then
 elseif game.PlaceId == TargetID7 then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/knoxexploits/KnoxHub/refs/heads/main/StealABrainrot.txt"))()
 
+elseif game.PlaceId == TargetID8 then
+    loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/91656c11ec8ec32496a55c47be21fa20953f84edf6d67202ae919c701e0b7d35/download"))()
+
 else 
-    local ScreenGui=Instance.new("ScreenGui")local Frame=Instance.new("Frame")local TextLabel=Instance.new("TextLabel")local Accent=Instance.new("Frame")ScreenGui.Parent=game:GetService("CoreGui")Frame.Parent=ScreenGui Frame.BackgroundColor3=Color3.fromRGB(30,30,30)Frame.BorderSizePixel=0 Frame.Position=UDim2.new(0.5,-150,0.4,0)Frame.Size=UDim2.new(0,300,0,80)Accent.Parent=Frame Accent.Size=UDim2.new(1,0,0,3)Accent.BackgroundColor3=Color3.fromRGB(180,0,0)Accent.BorderSizePixel=0 TextLabel.Parent=Frame TextLabel.Size=UDim2.new(1,0,1,0)TextLabel.BackgroundTransparency=1 TextLabel.Text="This game is not supported. pls request is on discord" TextLabel.TextColor3=Color3.fromRGB(255,255,255)TextLabel.TextWrapped=true TextLabel.Font=Enum.Font.SourceSansSemibold TextLabel.TextSize=18 task.wait(3)ScreenGui:Destroy()
+    local ScreenGui = Instance.new("ScreenGui")
+    local Frame = Instance.new("Frame")
+    local TextLabel = Instance.new("TextLabel")
+    local Accent = Instance.new("Frame")
+    
+    ScreenGui.Parent = game:GetService("CoreGui")
+    Frame.Parent = ScreenGui 
+    Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    Frame.BorderSizePixel = 0 
+    Frame.Position = UDim2.new(0.5,-150,0.4,0)
+    Frame.Size = UDim2.new(0,300,0,80)
+    
+    Accent.Parent = Frame 
+    Accent.Size = UDim2.new(1,0,0,3)
+    Accent.BackgroundColor3 = Color3.fromRGB(180,0,0)
+    Accent.BorderSizePixel = 0 
+    
+    TextLabel.Parent = Frame 
+    TextLabel.Size = UDim2.new(1,0,1,0)
+    TextLabel.BackgroundTransparency = 1 
+    TextLabel.Text = "This game is not supported. pls request is on discord" 
+    TextLabel.TextColor3 = Color3.fromRGB(255,255,255)
+    TextLabel.TextWrapped = true 
+    TextLabel.Font = Enum.Font.SourceSansSemibold 
+    TextLabel.TextSize = 18 
+    
+    task.wait(3)
+    ScreenGui:Destroy()
 end
